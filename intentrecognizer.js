@@ -25,14 +25,14 @@ class IntentRecognizer {
         return await this.recognizer.recognize(context);
     }
 
-    getTimeEntity(LuisResult) {
+    getTimeEntity(result) {
         // const datetimeEntity = LuisResult.entities.datetime;
         // if (!datetimeEntity || !datetimeEntity[0]) return undefined;
 
         // const timex = datetimeEntity[0].timex;
         // if (!timex || !timex[0]) return undefined;
 
-        const datetime = LuisResult.entities.time;
+        const datetime = result.entities.time;
         return datetime;
     }
 }

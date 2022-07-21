@@ -24,11 +24,11 @@ class DentaBot extends ActivityHandler {
             try {
             // send user input to QnA Maker and collect the response in a variable
             // don't forget to use the 'await' keyword
-                const qnaResults = await this.QnAMaker.getAnswers(context);
+                const answers = await this.QnAMaker.getAnswers(context);
                 // send user input to IntentRecognizer and collect the response in a variable
                 // don't forget 'await'
-                const LuisResult = await this.IntentRecognizer.executeLuisQuery(context);
-                const topIntent = LuisResult.luisResult.prediction.topIntent;
+                const result = await this.IntentRecognizer.executeLuisQuery(context);
+                const topIntent = result.luisResult.prediction.topIntent;
                 // determine which service to respond with based on the results from LUIS //
 
                 // if(top intent is intentA and confidence greater than 50){
@@ -39,14 +39,14 @@ class DentaBot extends ActivityHandler {
                 // }
                 // else {...}
                 let message;
-                if (LuisResult.intent[topIntent].score > 0.65) {
+                if (result.intent[topIntent].score > 0.5) {
                     if (topIntent === 'getAvailability') {
-                        message = await this.DentistScheduler.getAvailability(this.IntentRecognizer.getTimeEntity(LuisResult));
+                        message = await this.DentistScheduler.getAvailability(this.IntentRecognizer.getTimeEntity(result));
                     } else {
-                        message = await this.DentistScheduler.scheduleAppointment(this.IntentRecognizer.getTimeEntity(LuisResult));
+                        message = await this.DentistScheduler.scheduleAppointment(this.IntentRecognizer.getTimeEntity(result));
                     };
                 } else {
-                    message = qnaResults[0].answer;
+                    message = answers[0].answer;
                 }
                 // If no answers were returned from QnA Maker, reply with help.
                 await context.sendActivity(MessageFactory.text(message, message));
@@ -59,7 +59,7 @@ class DentaBot extends ActivityHandler {
         this.onMembersAdded(async (context, next) => {
             const membersAdded = context.activity.membersAdded;
             // write a custom greeting
-            const greetingText = '';
+            const greetingText = 'Hello welcome to Contonso Dentistry, how may i help you?';
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
                     await context.sendActivity(MessageFactory.text(greetingText, greetingText));
