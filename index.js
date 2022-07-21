@@ -5,7 +5,7 @@ const path = require('path');
 
 const dotenv = require('dotenv');
 // Import required bot configuration.
-const ENV_FILE = path.join(__dirname, '.env');
+const ENV_FILE = path.join(__dirname, 'template.env');
 dotenv.config({ path: ENV_FILE });
 
 const restify = require('restify');
@@ -96,8 +96,6 @@ server.post('/api/messages', (req, res) => {
     });
 });
 
-
-
 // Listen for Upgrade requests for Streaming.
 server.on('upgrade', async (req, socket, head) => {
     // Create an adapter scoped to this WebSocket connection to allow storing session data.
@@ -107,4 +105,3 @@ server.on('upgrade', async (req, socket, head) => {
 
     await streamingAdapter.process(req, socket, head, (context) => myBot.run(context));
 });
-
