@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 class DentistScheduler {
     constructor(configuration) {
         this.getAvailability = async () => {
-            const response = await fetch(configuration.SchedulerEndpoint + 'availability');
+            const response = await fetch(configuration.SCHEDULERENDPOINT + 'availability');
             const times = await response.json();
             let responseText = 'Current time slots available:';
             times.map(time => {
@@ -12,7 +12,7 @@ class DentistScheduler {
         };
 
         this.scheduleAppointment = async (time) => {
-            const response = await fetch(configuration.SchedulerEndpoint + "schedule", { method: "post", body: { time: time } })
+            const response = await fetch(configuration.SCHEDULERENDPOINT + "schedule", { method: "post", body: { time: time } })
             let responseText = `An appointment is set for ${time}.`;
             return responseText;
         };

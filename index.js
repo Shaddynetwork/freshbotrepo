@@ -1,8 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 const path = require('path');
-
 const dotenv = require('dotenv');
 // Import required bot configuration.
 const ENV_FILE = path.join(__dirname, 'template.env');
@@ -31,8 +27,8 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 });
 
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
-    MicrosoftAppId: process.env.MicrosoftAppId,
-    MicrosoftAppPassword: process.env.MicrosoftAppPassword
+    MicrosoftAppId: process.env.MICROSOFTAPPID,
+    MicrosoftAppPassword: process.env.MICROSOFTAPPPASSWORD
 });
 
 const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
@@ -64,19 +60,19 @@ adapter.onTurnError = onTurnErrorHandler;
 
 // Map configuration values values from .env file into the required format for each service.
 const QnAConfiguration = {
-    knowledgeBaseId: process.env.QnAKnowledgebaseId,
-    endpointKey: process.env.QnAAuthKey,
-    host: process.env.QnAEndpointHostName
+    knowledgeBaseId: process.env.QNAKNOWLEDGEBASEID,
+    endpointKey: process.env.QNAAUTHKEY,
+    host: process.env.QNAENDPOINTHOSTNAME
 };
 
 const LuisConfiguration = {
-    applicationId: process.env.LuisAppId,
-    endpointKey: process.env.LuisAPIKey,
-    endpoint: process.env.LuisAPIHostName
+    applicationId: process.env.LUISAPPID,
+    endpointKey: process.env.LUISAPIKEY,
+    endpoint: process.env.LUISAPIHOSTNAME
 };
 
 const SchedulerConfiguration = {
-    SchedulerEndpoint: process.env.SchedulerEndpoint
+    SchedulerEndpoint: process.env.SCHEDULERENDPOINT
 };
 // pack each service configuration into
 const configuration = {
@@ -89,11 +85,13 @@ const configuration = {
 const myBot = new DentaBot(configuration, {});
 
 // Listen for incoming requests.
-server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (context) => {
-        // Route to main dialog.
-        await myBot.run(context);
-    });
+server.post('/api/messages', async (req, res) => {
+    // Route received a request to adapter for processing
+    await adapter.process(req, res, (context) => myBot.run(context));
+});
+
+server.get('/', (req, res) => {
+    res.json({ 'message' : 'Hello world!',});
 });
 
 // Listen for Upgrade requests for Streaming.
