@@ -38,37 +38,33 @@ class DentaBot extends ActivityHandler {
                 //  return;
                 // }
                 // else {...}
-            if (result.luisResult.prediction.topIntent === "getAvailability" &&
+                if (result.luisResult.prediction.topIntent === 'getAvailability' &&
                 result.intents.getAvailability.score > 0.5
-            ) {
-                const availableSlots = await this.dentistScheduler.getAvailability();
-                await context.sendActivity(availableSlots);
-                await next();
-                return;
-            } 
-            else if (result.luisResult.prediction.topIntent === "scheduleAppointment" &&
+                ) {
+                    const availableSlots = await this.dentistScheduler.getAvailability();
+                    await context.sendActivity(availableSlots);
+                    await next();
+                    return;
+                } else if (result.luisResult.prediction.topIntent === 'scheduleAppointment' &&
                      result.intents.scheduleAppointment.score > 0.5 &&
-                     result.entities.$instance && 
-                     result.entities.$instance.slot && 
-                     result.entities.$instance.slot[0]
-            ){
-                const timeSlot = result.entities.$instance.slot[0].text;
-                const schedulerResponse = await this.dentistScheduler.scheduleAppointment(timeSlot);
-                await context.sendActivity(MessageFactory.text(schedulerResponse, schedulerResponse));
-                await next();
-                return;
-            }
+                     result.entities.$instance.time
+                ) {
+                    console.log('schedule appointment');
+                    const timeSlot = result.entities.$instance.time[0].text;
+                    const schedulerResponse = await this.dentistScheduler.scheduleAppointment(timeSlot);
+                    await context.sendActivity(MessageFactory.text(schedulerResponse, schedulerResponse));
+                    await next();
+                    return;
+                }
 
-            if (answers[0]) {
-                await context.sendActivity(MessageFactory.text(`${answers[0].answer}`,`${answers[0].answer}`));
-                
-            }
-            else {
+                if (answers[0]) {
+                    await context.sendActivity(MessageFactory.text(`${ answers[0].answer }`, `${ answers[0].answer }`));
+                } else {
                 // If no answers were returned from QnA Maker, reply with help.
-                await context.sendActivity('your question is not clear' + 
+                    await context.sendActivity('your question is not clear' +
                 'I can provide the list of available slots' +
                  'Or you can ask me to make a reservation for a given time slot\n');
-            }
+                }
 
                 // await context.sendActivity(MessageFactory.text(message, message));
             } catch (e) {

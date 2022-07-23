@@ -27,8 +27,8 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 });
 
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
-    MicrosoftAppId: process.env.MICROSOFTAPPID,
-    MicrosoftAppPassword: process.env.MICROSOFTAPPPASSWORD
+    MicrosoftAppId: 'd3850def-5bd9-4321-98b1-cccdd0693736',
+    MicrosoftAppPassword: '3f48Q~WSEwFrE-kZyWoHAdAm1u3EjIjm.fJQMbOL'
 });
 
 const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
@@ -91,7 +91,7 @@ server.post('/api/messages', async (req, res) => {
 });
 
 server.get('/', (req, res) => {
-    res.json({ 'message' : 'Hello world!',});
+    res.json({ message: 'Hello world!', success: true });
 });
 
 // Listen for Upgrade requests for Streaming.
