@@ -14,21 +14,21 @@ class DentaBot extends ActivityHandler {
         if (!configuration) throw new Error('[QnaMakerBot]: Missing parameter. configuration is required');
 
         // create a QnAMaker connector
-        this.QnAMaker = new QnAMaker(configuration.QnAConfiguration);
+        this.qnAMaker = new QnAMaker(configuration.QnAConfiguration);
         // create a DentistScheduler connector
-        this.DentistScheduler = new DentistScheduler(configuration.SchedulerConfiguration);
+        this.dentistScheduler = new DentistScheduler(configuration.SchedulerConfiguration);
         // create a IntentRecognizer connector
-        this.IntentRecognizer = new IntentRecognizer(configuration.LuisConfiguration);
+        this.intentRecognizer = new IntentRecognizer(configuration.LuisConfiguration);
 
         this.onMessage(async (context, next) => {
             try {
             // send user input to QnA Maker and collect the response in a variable
             // don't forget to use the 'await' keyword
-                const answers = await this.QnAMaker.getAnswers(context);
+                const answers = await this.qnAMaker.getAnswers(context);
                 // send user input to IntentRecognizer and collect the response in a variable
                 // don't forget 'await'
-                const result = await this.IntentRecognizer.executeLuisQuery(context);
-                const topIntent = result.luisResult.prediction.topIntent;
+                const result = await this.intentRecognizer.executeLuisQuery(context);
+                // const topIntent = result.luisResult.prediction.topIntent;
                 // determine which service to respond with based on the results from LUIS //
 
                 // if(top intent is intentA and confidence greater than 50){
@@ -38,18 +38,39 @@ class DentaBot extends ActivityHandler {
                 //  return;
                 // }
                 // else {...}
-                let message;
-                if (result.intent[topIntent].score > 0.5) {
-                    if (topIntent === 'getAvailability') {
-                        message = await this.DentistScheduler.getAvailability(this.IntentRecognizer.getTimeEntity(result));
-                    } else {
-                        message = await this.DentistScheduler.scheduleAppointment(this.IntentRecognizer.getTimeEntity(result));
-                    };
-                } else {
-                    message = answers[0].answer;
-                }
+            if (result.luisResult.prediction.topIntent === "getAvailability" &&
+                result.intents.getAvailability.score > 0.5
+            ) {
+                const availableSlots = await this.dentistScheduler.getAvailability();
+                await context.sendActivity(availableSlots);
+                await next();
+                return;
+            } 
+            else if (result.luisResult.prediction.topIntent === "scheduleAppointment" &&
+                     result.intents.scheduleAppointment.score > 0.5 &&
+                     result.entities.$instance && 
+                     result.entities.$instance.slot && 
+                     result.entities.$instance.slot[0]
+            ){
+                const timeSlot = result.entities.$instance.slot[0].text;
+                const schedulerResponse = await this.dentistScheduler.scheduleAppointment(timeSlot);
+                await context.sendActivity(MessageFactory.text(schedulerResponse, schedulerResponse));
+                await next();
+                return;
+            }
+
+            if (answers[0]) {
+                await context.sendActivity(MessageFactory.text(`${answers[0].answer}`,`${answers[0].answer}`));
+                
+            }
+            else {
                 // If no answers were returned from QnA Maker, reply with help.
-                await context.sendActivity(MessageFactory.text(message, message));
+                await context.sendActivity('your question is not clear' + 
+                'I can provide the list of available slots' +
+                 'Or you can ask me to make a reservation for a given time slot\n');
+            }
+
+                // await context.sendActivity(MessageFactory.text(message, message));
             } catch (e) {
                 console.error(e);
             }
